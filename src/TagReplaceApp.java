@@ -1,5 +1,9 @@
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.HashSet;
+import java.util.Scanner;
 
 public class TagReplaceApp {
     JFrame frame;
@@ -12,6 +16,10 @@ public class TagReplaceApp {
     JPanel tagsPanel;
     JPanel controlPanel;
 
+    String text = "";
+    HashSet<String> tags = new HashSet<>();
+    JFileChooser fileChooser = new JFileChooser();
+
 
     public TagReplaceApp() {
         frame = new JFrame("Tag Replace");
@@ -23,7 +31,31 @@ public class TagReplaceApp {
         openFileButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         openFileButton.addActionListener(e -> {
-            // todo open file
+            int result = fileChooser.showOpenDialog(frame);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                try {
+                    Scanner scanner = new Scanner(file);
+                    StringBuilder sb = new StringBuilder();
+                    tags.clear();
+                    while (scanner.hasNextLine()) {
+                        String line = scanner.nextLine();
+                        sb.append(line);
+                        sb.append("\n");
+                        for (String word : line.split(" ")){
+                            if (word.matches("<.+>")) {
+                                tags.add(word);
+                            }
+                        }
+                    }
+                    text = sb.toString();
+                    System.out.println(text);
+                    System.out.println("Tags: ");
+                    System.out.println(tags);
+                } catch (FileNotFoundException ex) {
+                    System.err.println("File not found.");
+                }
+            }
         });
 
         tagsPanel = new JPanel();
