@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
 
@@ -17,7 +18,7 @@ public class TagReplaceApp {
     JPanel controlPanel;
 
     String text = "";
-    HashSet<String> tags = new HashSet<>();
+    HashMap<String, JTextField> tags = new HashMap<>();
     JFileChooser fileChooser = new JFileChooser();
 
 
@@ -44,12 +45,27 @@ public class TagReplaceApp {
                         sb.append("\n");
                         for (String word : line.split(" ")){
                             if (word.matches("<.+>")) {
-                                tags.add(word);
+                                tags.put(word, new JTextField());
                             }
                         }
                     }
                     text = sb.toString();
-                    System.out.println(text);
+                    results.setText(text);
+                    tagsPanel.removeAll();
+                    tags.forEach((tag, field) -> {
+                        GridBagConstraints gbc = new GridBagConstraints();
+                        gbc.fill = GridBagConstraints.HORIZONTAL;
+                        gbc.weightx = 0.25;
+                        gbc.gridx = 0;
+                        gbc.gridy = tagsPanel.getComponents().length;
+                        gbc.insets = new Insets(10, 10, 5, 5);
+                        tagsPanel.add(new JLabel(tag), gbc);
+                        gbc.weightx = 0.5;
+                        gbc.gridx = 1;
+                        gbc.insets = new Insets(10, 5, 5, 10);
+                        tagsPanel.add(field, gbc);
+                    });
+                    tagsPanel.revalidate();
                     System.out.println("Tags: ");
                     System.out.println(tags);
                 } catch (FileNotFoundException ex) {
@@ -59,7 +75,7 @@ public class TagReplaceApp {
         });
 
         tagsPanel = new JPanel();
-        tagsPanel.setLayout(new FlowLayout());
+        tagsPanel.setLayout(new GridBagLayout());
         tagsPanel.setPreferredSize(new Dimension(500, 400));
         tagsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
