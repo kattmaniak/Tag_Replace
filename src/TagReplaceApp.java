@@ -14,6 +14,7 @@ public class TagReplaceApp {
     JTextPane results;
     JScrollPane resultsPane;
     JPanel tagsPanel;
+    JComboBox<String> scriptsCombo = new JComboBox<>();
     JPanel controlPanel;
 
     String text = "";
@@ -21,6 +22,43 @@ public class TagReplaceApp {
     HashMap<String, JTextField> tags = new HashMap<>();
     JFileChooser fileChooser = new JFileChooser(new File(System.getProperty("user.dir")));
 
+    void openFile(File file) {
+        try {
+            Scanner scanner = new Scanner(file);
+            StringBuilder sb = new StringBuilder();
+            tags.clear();
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                sb.append(line);
+                sb.append("\n");
+                for (String word : line.split(" ")){
+                    if (word.matches("<.+>")) {
+                        tags.put(word, new JTextField());
+                    }
+                }
+            }
+            originalText = sb.toString();
+            text = originalText;
+            results.setText(text);
+            tagsPanel.removeAll();
+            tags.forEach((tag, field) -> {
+                GridBagConstraints gbc = new GridBagConstraints();
+                gbc.fill = GridBagConstraints.HORIZONTAL;
+                gbc.weightx = 0.25;
+                gbc.gridx = 0;
+                gbc.gridy = tagsPanel.getComponents().length;
+                gbc.insets = new Insets(10, 10, 5, 5);
+                tagsPanel.add(new JLabel(tag), gbc);
+                gbc.weightx = 0.5;
+                gbc.gridx = 1;
+                gbc.insets = new Insets(10, 5, 5, 10);
+                tagsPanel.add(field, gbc);
+            });
+            tagsPanel.revalidate();
+        } catch (FileNotFoundException ex) {
+            System.err.println("File not found.");
+        }
+    }
 
     public TagReplaceApp() {
         frame = new JFrame("Tag Replace");
@@ -35,47 +73,13 @@ public class TagReplaceApp {
             int result = fileChooser.showOpenDialog(frame);
             if (result == JFileChooser.APPROVE_OPTION) {
                 File file = fileChooser.getSelectedFile();
-                try {
-                    Scanner scanner = new Scanner(file);
-                    StringBuilder sb = new StringBuilder();
-                    tags.clear();
-                    while (scanner.hasNextLine()) {
-                        String line = scanner.nextLine();
-                        sb.append(line);
-                        sb.append("\n");
-                        for (String word : line.split(" ")){
-                            if (word.matches("<.+>")) {
-                                tags.put(word, new JTextField());
-                            }
-                        }
-                    }
-                    originalText = sb.toString();
-                    text = originalText;
-                    results.setText(text);
-                    tagsPanel.removeAll();
-                    tags.forEach((tag, field) -> {
-                        GridBagConstraints gbc = new GridBagConstraints();
-                        gbc.fill = GridBagConstraints.HORIZONTAL;
-                        gbc.weightx = 0.25;
-                        gbc.gridx = 0;
-                        gbc.gridy = tagsPanel.getComponents().length;
-                        gbc.insets = new Insets(10, 10, 5, 5);
-                        tagsPanel.add(new JLabel(tag), gbc);
-                        gbc.weightx = 0.5;
-                        gbc.gridx = 1;
-                        gbc.insets = new Insets(10, 5, 5, 10);
-                        tagsPanel.add(field, gbc);
-                    });
-                    tagsPanel.revalidate();
-                } catch (FileNotFoundException ex) {
-                    System.err.println("File not found.");
-                }
+                openFile(file);
+                scriptsCombo.setSelectedIndex(0);
             }
         });
 
         tagsPanel = new JPanel();
         tagsPanel.setLayout(new GridBagLayout());
-        tagsPanel.setPreferredSize(new Dimension(500, 400));
         tagsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
         applyButton = new JButton("Apply");
@@ -90,11 +94,57 @@ public class TagReplaceApp {
             results.setText(text);
         });
 
+        File scriptsFolder = new File("./Scripts");
+        if (scriptsFolder.exists() && scriptsFolder.isDirectory()) {
+            File[] scripts = scriptsFolder.listFiles();
+            if (scripts != null && scripts.length != 0) {
+                scriptsCombo.addItem("Select a script...");
+                for (File script : scripts) {
+                    if (script.isFile()) {
+                        scriptsCombo.addItem(script.getName());
+                    }
+                }
+            } else {
+                scriptsCombo.setEnabled(false);
+                scriptsCombo.addItem("No scripts found.");
+            }
+        } else {
+            scriptsCombo.setEnabled(false);
+            scriptsCombo.addItem("'Scripts' folder not found.");
+        }
+
+        scriptsCombo.addActionListener(e -> {
+            if (scriptsCombo.getSelectedIndex() != 0) {
+                File selectedScript = new File("./Scripts/"+scriptsCombo.getSelectedItem());
+                openFile(selectedScript);
+            }
+        });
+
         controlPanel = new JPanel();
-        controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
-        controlPanel.add(openFileButton);
-        controlPanel.add(tagsPanel);
-        controlPanel.add(applyButton);
+        controlPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weighty = 0.1;
+        gbc.weightx = 0.25;
+        gbc.insets = new Insets(5,5,5,0);
+        gbc.anchor = GridBagConstraints.LINE_START;
+        controlPanel.add(openFileButton, gbc);
+        gbc.gridx = 1;
+        gbc.weightx = 0.75;
+        gbc.anchor = GridBagConstraints.LINE_END;
+        controlPanel.add(scriptsCombo);
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        gbc.gridy = 2;
+        controlPanel.add(applyButton, gbc);
+        gbc.gridy = 1;
+        gbc.weighty = 0.8;
+        gbc.weightx= 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        controlPanel.add(tagsPanel, gbc);
 
         results = new JTextPane();
         results.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
