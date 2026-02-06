@@ -19,7 +19,7 @@ public class TagReplaceApp {
     String text = "";
     String originalText = "";
     HashMap<String, JTextField> tags = new HashMap<>();
-    JFileChooser fileChooser = new JFileChooser();
+    JFileChooser fileChooser = new JFileChooser(new File(System.getProperty("user.dir")));
 
 
     public TagReplaceApp() {
