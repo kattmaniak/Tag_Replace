@@ -1,5 +1,8 @@
 import javax.swing.*;
+import javax.tools.Tool;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
@@ -10,6 +13,7 @@ public class TagReplaceApp {
 
     JButton openFileButton;
     JButton applyButton;
+    JButton copyButton;
 
     JTextPane results;
     JScrollPane resultsPane;
@@ -54,6 +58,7 @@ public class TagReplaceApp {
                 gbc.insets = new Insets(10, 5, 5, 10);
                 tagsPanel.add(field, gbc);
             });
+            copyButton.setEnabled(true);
             tagsPanel.revalidate();
         } catch (FileNotFoundException ex) {
             System.err.println("File not found.");
@@ -94,6 +99,17 @@ public class TagReplaceApp {
             results.setText(text);
         });
 
+        copyButton = new JButton("Copy to Clipboard");
+        copyButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        copyButton.setEnabled(false);
+
+        copyButton.addActionListener(e -> {
+            StringSelection selection = new StringSelection(text);
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            clipboard.setContents(selection, null);
+        });
+
+
         File scriptsFolder = new File("./Scripts");
         if (scriptsFolder.exists() && scriptsFolder.isDirectory()) {
             File[] scripts = scriptsFolder.listFiles();
@@ -128,7 +144,6 @@ public class TagReplaceApp {
         gbc.weighty = 0.1;
         gbc.weightx = 0.25;
         gbc.insets = new Insets(5,5,5,0);
-        gbc.anchor = GridBagConstraints.LINE_START;
         controlPanel.add(openFileButton, gbc);
         gbc.gridx = 1;
         gbc.weightx = 0.75;
@@ -137,10 +152,13 @@ public class TagReplaceApp {
         gbc.anchor = GridBagConstraints.CENTER;
         gbc.fill = GridBagConstraints.NONE;
         gbc.gridx = 0;
-        gbc.gridwidth = 2;
         gbc.gridy = 2;
         controlPanel.add(applyButton, gbc);
+        gbc.gridx = 1;
+        controlPanel.add(copyButton, gbc);
+        gbc.gridx = 0;
         gbc.gridy = 1;
+        gbc.gridwidth = 2;
         gbc.weighty = 0.8;
         gbc.weightx= 1;
         gbc.fill = GridBagConstraints.BOTH;
