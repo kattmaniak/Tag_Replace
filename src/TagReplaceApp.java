@@ -17,6 +17,7 @@ public class TagReplaceApp {
     JPanel controlPanel;
 
     String text = "";
+    String originalText = "";
     HashMap<String, JTextField> tags = new HashMap<>();
     JFileChooser fileChooser = new JFileChooser();
 
@@ -48,7 +49,8 @@ public class TagReplaceApp {
                             }
                         }
                     }
-                    text = sb.toString();
+                    originalText = sb.toString();
+                    text = originalText;
                     results.setText(text);
                     tagsPanel.removeAll();
                     tags.forEach((tag, field) -> {
@@ -65,8 +67,6 @@ public class TagReplaceApp {
                         tagsPanel.add(field, gbc);
                     });
                     tagsPanel.revalidate();
-                    System.out.println("Tags: ");
-                    System.out.println(tags);
                 } catch (FileNotFoundException ex) {
                     System.err.println("File not found.");
                 }
@@ -83,7 +83,11 @@ public class TagReplaceApp {
         applyButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         applyButton.addActionListener(e -> {
-            // todo apply
+            text = originalText;
+            tags.forEach((tag, field) -> {
+                text = text.replaceAll(tag, field.getText());
+            });
+            results.setText(text);
         });
 
         controlPanel = new JPanel();
