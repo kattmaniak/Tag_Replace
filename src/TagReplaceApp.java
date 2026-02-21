@@ -30,15 +30,45 @@ public class TagReplaceApp {
             Scanner scanner = new Scanner(file);
             StringBuilder sb = new StringBuilder();
             tags.clear();
+            boolean inTag = false;
+            StringBuilder currentTag = new StringBuilder();
+            scannerLoop:
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 sb.append(line);
                 sb.append("\n");
-                for (String word : line.split(" ")){
-                    if (word.matches("<.+>")) {
-                        tags.put(word, new JTextField());
+                for (Character c : line.toCharArray()){
+                    if (inTag) {
+                        if (c == '<') {
+                            break scannerLoop;
+                        }
+                        if (c == '>') {
+                            inTag = false;
+                            currentTag.append(c);
+                            if (!tags.containsKey(currentTag.toString())) {
+                                tags.put(currentTag.toString(), new JTextField());
+                            }
+                            currentTag = new StringBuilder();
+                        }
+                        else {
+                            currentTag.append(c);
+                        }
+                    } else if (c == '<') {
+                        inTag = true;
+                        currentTag.append(c);
                     }
+//                    if (word.matches("<.+>")) {
+//                        tags.put(word, new JTextField());
+//                    }
                 }
+
+            }
+            if (inTag) {
+                tags.clear();
+                sb = new StringBuilder();
+                sb.append("Error: tag ");
+                sb.append(currentTag);
+                sb.append(" not closed");
             }
             originalText = sb.toString();
             text = originalText;
